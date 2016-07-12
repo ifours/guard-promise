@@ -2,8 +2,8 @@ import "babel-core/register";
 import "babel-polyfill";
 import expect, { createSpy, spyOn, isSpy } from 'expect';
 import {
-  golangTupleConfig as Config,
-  golangTupleDecorator as Decorator
+  setupTuplePromise as Config,
+  TuplePromiseDecorator as Decorator
 } from '../';
 
 describe('golang tuple method decorator', function() {

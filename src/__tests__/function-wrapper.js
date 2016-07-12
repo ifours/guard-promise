@@ -2,8 +2,8 @@ import "babel-core/register";
 import "babel-polyfill";
 import expect, { createSpy, spyOn, isSpy } from 'expect';
 import {
-  golangTupleWrapper as Wrapper,
-  golangTupleConfig as Config
+  CreateTuplePromise as Wrapper,
+  setupTuplePromise as Config
 } from '../';
 
 describe('golang tuple function wrapper', function() {

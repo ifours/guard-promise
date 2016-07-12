@@ -1,11 +1,11 @@
 {
-  "name": "golang-request",
+  "name": "tuple-promise",
   "version": "0.1.0",
   "description": "Golang like error handling",
   "main": "lib",
   "scripts": {
-    "build": "babel ./src/golang-request.js -o ./src/index.js",
-    "test": "mocha --compilers js:babel-register src/__test__/*.js"
+    "build-lib": "babel ./src -d lib --ignore '__tests__'",
+    "test": "mocha --compilers js:babel-register src/__tests__/*.js"
   },
   "repository": {
     "type": "git",
