@@ -16,3 +16,5 @@ export const guard = (promise) =>
       }
     );
   });
+
+export default guard;

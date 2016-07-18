@@ -1,7 +1,7 @@
 import "babel-core/register";
 import "babel-polyfill";
 import expect, { createSpy, spyOn, isSpy } from 'expect';
-import { configGuard, guard } from '../';
+import guard, { configGuard } from '../';
 
 describe('golang tuple function wrapper', function() {
 
