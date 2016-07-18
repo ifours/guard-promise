@@ -1,7 +1,7 @@
 {
-  "name": "tuple-promise",
-  "version": "0.1.0",
-  "description": "Golang like error handling",
+  "name": "guard-promise",
+  "version": "0.2.0",
+  "description": "Guard Promise",
   "main": "lib",
   "scripts": {
     "build-lib": "babel ./src -d lib --ignore '__tests__'",

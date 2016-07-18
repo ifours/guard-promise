@@ -1,22 +1,19 @@
 import "babel-core/register";
 import "babel-polyfill";
 import expect, { createSpy, spyOn, isSpy } from 'expect';
-import {
-  CreateTuplePromise as Wrapper,
-  setupTuplePromise as Config
-} from '../';
+import { configGuard, guard } from '../';
 
 describe('golang tuple function wrapper', function() {
 
   afterEach(function() {
-    Config({});
+    configGuard({});
   });
 
   it('should resolve simple promise', function() {
     const passedData = 'some data';
     const simpleResolveRequest = (data) => Promise.resolve(data);
 
-    return Wrapper(simpleResolveRequest)(passedData).then(function ([data, err]) {
+    return guard(simpleResolveRequest(passedData)).then(([data, err]) => {
       expect(data).toBe(passedData);
       expect(err).toNotExist();
     });
@@ -26,7 +23,7 @@ describe('golang tuple function wrapper', function() {
     const passedData = 'some data';
     const simpleResolveRequest = (data) => Promise.resolve(data);
 
-    const [data, err] = await Wrapper(simpleResolveRequest)(passedData);
+    const [data, err] = await guard(simpleResolveRequest(passedData));
 
     expect(data).toBe(passedData);
     expect(err).toNotExist();
@@ -36,7 +33,7 @@ describe('golang tuple function wrapper', function() {
     const passedError = 'some err';
     const simpleRejectRequest = (err) => Promise.reject(err);
 
-    return Wrapper(simpleRejectRequest)(passedError).then(([data, err]) => {
+    return guard(simpleRejectRequest(passedError)).then(([data, err]) => {
       expect(data).toNotExist();
       expect(err).toBe(passedError);
     });
@@ -46,7 +43,7 @@ describe('golang tuple function wrapper', function() {
     const passedError = 'some err';
     const simpleRejectRequest = (err) => Promise.reject(err);
 
-    const [data, err] = await Wrapper(simpleRejectRequest)(passedError);
+    const [data, err] = await guard(simpleRejectRequest(passedError));
 
     expect(data).toNotExist();
     expect(err).toBe(passedError);
@@ -59,7 +56,7 @@ describe('golang tuple function wrapper', function() {
       return data;
     }
 
-    return Wrapper(asyncResolveRequest)(passedData).then(([data, err]) => {
+    return guard(asyncResolveRequest(passedData)).then(([data, err]) => {
       expect(data).toBe(passedData);
       expect(err).toNotExist();
     });
@@ -72,7 +69,7 @@ describe('golang tuple function wrapper', function() {
       return data;
     }
 
-    const [data, err] = await Wrapper(asyncResolveRequest)(passedData);
+    const [data, err] = await guard(asyncResolveRequest(passedData));
 
     expect(data).toBe(passedData);
     expect(err).toNotExist();
@@ -86,7 +83,7 @@ describe('golang tuple function wrapper', function() {
       return 'never return';
     }
 
-    return Wrapper(asyncRejectRequest)(passedError).then(([data, err]) => {
+    return guard(asyncRejectRequest(passedError)).then(([data, err]) => {
       expect(data).toNotExist();
       expect(err.message).toBe(passedError);
     });
@@ -100,7 +97,7 @@ describe('golang tuple function wrapper', function() {
       return 'never return';
     }
 
-    const [data, err] = await Wrapper(asyncRejectRequest)(passedError);
+    const [data, err] = await guard(asyncRejectRequest(passedError));
 
     expect(data).toNotExist();
     expect(err.message).toBe(passedError);
@@ -115,7 +112,7 @@ describe('golang tuple function wrapper', function() {
     }
 
     try {
-      await Wrapper(asyncRejectRequest)();
+      await guard(asyncRejectRequest());
     } catch(e) {
       error = e;
     }
@@ -128,14 +125,14 @@ describe('golang tuple function wrapper', function() {
       functionThatDoesNotExist();
     }
 
-    const [data, err] = await Wrapper(asyncRejectRequest)();
+    const [data, err] = await guard(asyncRejectRequest());
 
     expect(err).toExist();
   });
 
   it('should not handle programmer errors in async function with predicate', async function() {
 
-    Config({
+    configGuard({
       predicate: e => e.code
     });
 
@@ -146,7 +143,7 @@ describe('golang tuple function wrapper', function() {
     }
 
     try {
-      await Wrapper(asyncRejectRequest)();
+      await guard(asyncRejectRequest());
     } catch(e) {
       error = e;
     }
@@ -157,7 +154,7 @@ describe('golang tuple function wrapper', function() {
   it('should handle operational errors', function() {
     const resolveRequestThatThrowError = () => Promise.resolve().then(() => { throw new Error() });
 
-    return Wrapper(resolveRequestThatThrowError)().then(([data, err]) => {
+    return guard(resolveRequestThatThrowError()).then(([data, err]) => {
       expect(err).toExist();
       expect(data).toNotExist();
     });
@@ -166,53 +163,53 @@ describe('golang tuple function wrapper', function() {
   it('should handle operational errors in async function', async function() {
     const resolveRequestThatThrowError = () => Promise.resolve().then(() => { throw new Error() });
 
-    const [data, err] = await Wrapper(resolveRequestThatThrowError)();
+    const [data, err] = await guard(resolveRequestThatThrowError());
 
     expect(err).toExist();
     expect(data).toNotExist();
   });
 
   it('should handle operational errors if predicate returns true', function() {
-    Config({
+    configGuard({
       predicate: e => e.code
     });
 
     const code = 404;
     const resolveRequestThatThrowError = () => Promise.resolve().then(() => { throw { code } });
 
-    return Wrapper(resolveRequestThatThrowError)().then(([data, err]) => {
+    return guard(resolveRequestThatThrowError()).then(([data, err]) => {
       expect(err.code).toBe(code)
       expect(data).toNotExist();
     });
   });
 
   it('should handle operational errors in async function if predicate returns true', async function() {
-    Config({
+    configGuard({
       predicate: e => e.code
     });
 
     const code = 404;
     const resolveRequestThatThrowError = () => Promise.resolve().then(() => { throw { code } });
 
-    const [data, err] = await Wrapper(resolveRequestThatThrowError)();
+    const [data, err] = await guard(resolveRequestThatThrowError());
 
     expect(err.code).toBe(code);
     expect(data).toNotExist();
   });
 
   it('should not handle operational errors if predicate returns false', function() {
-    Config({
+    configGuard({
       predicate: e => e.code
     });
 
     const code = 404;
     const resolveRequestThatThrowError = () => Promise.resolve().then(() => { throw { id: code } });
 
-    return Wrapper(resolveRequestThatThrowError)().catch(error => expect(error.id).toBe(code));
+    return guard(resolveRequestThatThrowError()).catch(error => expect(error.id).toBe(code));
   });
 
   it('should not handle operational errors in async function if predicate returns false', async function() {
-    Config({
+    configGuard({
       predicate: e => e.code
     });
 
@@ -221,7 +218,7 @@ describe('golang tuple function wrapper', function() {
     const resolveRequestThatThrowError = () => Promise.resolve().then(() => { throw { id: code } });
 
     try {
-      await Wrapper(resolveRequestThatThrowError)();
+      await guard(resolveRequestThatThrowError());
     } catch(e) {
       error = e;
     }
@@ -229,18 +226,35 @@ describe('golang tuple function wrapper', function() {
     expect(error.id).toBe(code);
   });
 
-  it('should accept default data', async function() {
-    const defaultData = {
-      foo: 'bar',
-      baz: 'qux'
-    };
-    const rejectRequest = () => Promise.reject('err')
+  it('should resolve Promise.all', async function() {
+    const foo = 'foo';
+    const bar = 'bar';
+    const simpleResolveRequest = (data) => Promise.resolve(data);
 
-    const [{ foo, baz }, err] = await Wrapper(rejectRequest, defaultData)();
+    const [[fooResponce, barResponce], err] = await guard(Promise.all([
+      simpleResolveRequest(foo),
+      simpleResolveRequest(bar)
+    ]));
 
-    expect(err).toExist();
-    expect(foo).toBe(defaultData.foo);
-    expect(baz).toBe(defaultData.baz);
+    expect(err).toNotExist();
+    expect(fooResponce).toBe(foo);
+    expect(barResponce).toBe(bar);
+  });
+
+  it('should reject Promise.all', async function() {
+    const foo = 'foo';
+    const bar = 'bar';
+    const rejectRequest = (err) => Promise.reject(err);
+    const simpleResolveRequest = (data) => Promise.resolve(data);
+
+    const [[fooResponce, barResponce] = [], err] = await guard(Promise.all([
+      simpleResolveRequest(foo),
+      rejectRequest(bar)
+    ]));
+
+    expect(err).toBe(bar);
+    expect(fooResponce).toNotExist();
+    expect(barResponce).toNotExist();
   });
 
 });
