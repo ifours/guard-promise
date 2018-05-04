@@ -1,5 +1,4 @@
-import "babel-core/register";
-import "babel-polyfill";
+import "@babel/polyfill";
 import expect, { createSpy, spyOn, isSpy } from 'expect';
 import guard, { configGuard } from '../';
 
